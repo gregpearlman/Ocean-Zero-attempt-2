@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Build Your Own VC HQ — Step-by-Step</title>
+<style>
+  :root{
+    --bg:#0d1117; --bg-elev:#161b22; --bg-elev-2:#1f2630; --border:#2d333b;
+    --border-strong:#444c56; --text:#e6edf3; --muted:#8b949e; --dim:#6e7681;
+    --accent:#58a6ff; --accent-2:#79c0ff; --green:#3fb950; --amber:#d29922; --red:#f85149;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+    background:var(--bg);color:var(--text);overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  #deck{position:relative;height:100vh;width:100vw}
+  .slide{
+    position:absolute;inset:0;display:none;flex-direction:column;
+    padding:64px 80px 88px;overflow-y:auto;
+    animation:fade .35s ease;
+  }
+  .slide.active{display:flex}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .kicker{color:var(--accent);font-size:14px;font-weight:600;letter-spacing:.08em;
+    text-transform:uppercase;margin-bottom:14px}
+  h1{font-size:46px;line-height:1.12;font-weight:700;letter-spacing:-.02em;margin-bottom:18px}
+  h2{font-size:32px;line-height:1.18;font-weight:700;letter-spacing:-.01em;margin-bottom:22px}
+  h3{font-size:19px;font-weight:600;margin:18px 0 8px;color:var(--accent-2)}
+  p{font-size:18px;line-height:1.6;color:var(--text);max-width:60ch;margin-bottom:12px}
+  .lede{font-size:21px;color:var(--muted);max-width:64ch;line-height:1.55}
+  ul{margin:6px 0 14px 0;padding-left:0;list-style:none;max-width:70ch}
+  li{font-size:17px;line-height:1.55;color:var(--text);margin-bottom:10px;padding-left:26px;position:relative}
+  li::before{content:"▸";position:absolute;left:0;color:var(--accent);font-weight:700}
+  li b,li strong{color:var(--accent-2);font-weight:600}
+  .muted{color:var(--muted)}
+  code{font-family:'SF Mono',ui-monospace,Menlo,monospace;background:var(--bg-elev-2);
+    border:1px solid var(--border);border-radius:6px;padding:2px 7px;font-size:.86em;color:var(--accent-2)}
+  pre{background:var(--bg-elev);border:1px solid var(--border);border-radius:var(--radius);
+    padding:18px 20px;margin:10px 0;overflow-x:auto;max-width:78ch}
+  pre code{background:none;border:none;padding:0;color:var(--text);font-size:14px;line-height:1.7;display:block;white-space:pre}
+  .grid{display:grid;gap:16px;margin-top:8px}
+  .grid.cols-2{grid-template-columns:1fr 1fr}
+  .grid.cols-3{grid-template-columns:repeat(3,1fr)}
+  .card{background:var(--bg-elev);border:1px solid var(--border);border-radius:var(--radius);
+    padding:18px 20px}
+  .card h3{margin-top:0}
+  .card p,.card li{font-size:15px}
+  .pill{display:inline-block;background:var(--bg-elev-2);border:1px solid var(--border-strong);
+    border-radius:999px;padding:4px 12px;font-size:13px;color:var(--muted);margin:0 6px 6px 0}
+  .pill.hot{color:var(--red);border-color:var(--red)}
+  .pill.ok{color:var(--green);border-color:var(--green)}
+  .pill.warn{color:var(--amber);border-color:var(--amber)}
+  table{border-collapse:collapse;margin:10px 0;font-size:15px;width:100%;max-width:80ch}
+  th,td{text-align:left;padding:8px 14px;border-bottom:1px solid var(--border)}
+  th{color:var(--muted);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.04em}
+  td code{font-size:13px}
+  .step-num{display:inline-flex;align-items:center;justify-content:center;width:46px;height:46px;
+    border-radius:12px;background:var(--accent);color:#06101f;font-weight:800;font-size:22px;margin-bottom:18px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
+  .note{border-left:3px solid var(--amber);background:rgba(210,153,34,.08);
+    padding:12px 18px;border-radius:0 8px 8px 0;margin:12px 0;font-size:16px;color:var(--text);max-width:70ch}
+  .note.good{border-color:var(--green);background:rgba(63,185,80,.08)}
+  .note.bad{border-color:var(--red);background:rgba(248,81,73,.08)}
+  /* chrome */
+  #bar{position:fixed;top:0;left:0;height:3px;background:var(--accent);z-index:50;transition:width .3s}
+  #ui{position:fixed;bottom:20px;right:28px;display:flex;align-items:center;gap:16px;z-index:50;
+    font-size:13px;color:var(--dim)}
+  #ui button{background:var(--bg-elev);border:1px solid var(--border-strong);color:var(--text);
+    width:38px;height:38px;border-radius:9px;font-size:18px;cursor:pointer}
+  #ui button:hover{border-color:var(--accent);color:var(--accent)}
+  #counter{font-variant-numeric:tabular-nums;color:var(--muted);min-width:54px;text-align:center}
+  #brand{position:fixed;bottom:22px;left:28px;z-index:50;font-size:13px;color:var(--dim)}
+  #brand b{color:var(--muted)}
+  .hint{position:fixed;top:18px;right:28px;z-index:50;font-size:12px;color:var(--dim)}
+  .big-num{font-size:64px;font-weight:800;color:var(--accent);line-height:1;letter-spacing:-.03em}
+  .center{align-items:center;justify-content:center;text-align:center}
+  .center p,.center .lede{max-width:60ch}
+  .flow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:14px 0}
+  .flow .node{background:var(--bg-elev);border:1px solid var(--border-strong);border-radius:9px;
+    padding:10px 16px;font-size:15px}
+  .flow .arr{color:var(--accent);font-size:20px}
+  .tag{font-size:12px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+  @media(max-width:820px){.slide{padding:40px 28px 80px}h1{font-size:32px}h2{font-size:24px}.two,.grid.cols-2,.grid.cols-3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<div class="hint">← → to navigate · <b>F</b> fullscreen</div>
+<div id="deck">
+
+  <!-- 1 TITLE -->
+  <section class="slide active center">
+    <div class="kicker">A Claude-operated portfolio operations dashboard</div>
+    <h1>Build Your Own<br>VC&nbsp;HQ</h1>
+    <p class="lede">A step-by-step playbook for standing up a living, AI-maintained portfolio &amp; investor-matchmaking command center — the same architecture that runs Exa VC HQ.</p>
+    <p class="muted" style="margin-top:24px">Sister-fund onboarding &amp; handover kit · plain static site · zero build step · operated by Claude Code</p>
+  </section>
+
+  <!-- 2 WHAT YOU'RE BUILDING -->
+  <section class="slide">
+    <div class="kicker">The product</div>
+    <h2>What you're building</h2>
+    <p class="lede">A password-protected internal site that is the single source of truth for your fund's live deal book — and a tool Claude keeps current from your inbox, Slack and Drive.</p>
+    <div class="grid cols-3" style="margin-top:24px">
+      <div class="card"><h3>Dashboard</h3><p class="muted">Round-status tiles per portfolio company, sorted hot→cold. Click to expand.</p></div>
+      <div class="card"><h3>Fund Performance</h3><p class="muted">Capital deployed, NAV, MOIC and per-company returns from your master sheet.</p></div>
+      <div class="card"><h3>To-Do</h3><p class="muted">Operational + outreach streams, per team member, refreshed weekly.</p></div>
+      <div class="card"><h3>Investors &amp; Pairings</h3><p class="muted">Your investor universe × companies, ranked and tier-scored with citable sources.</p></div>
+      <div class="card"><h3>Companies</h3><p class="muted">Each portco as its own mini-site: round, cap table, board, governance, competitors, exit comps.</p></div>
+      <div class="card"><h3>Outreach trackers</h3><p class="muted">Live investor-outreach sheets synced from Drive, searchable + filterable.</p></div>
+    </div>
+  </section>
+
+  <!-- 3 PHILOSOPHY -->
+  <section class="slide">
+    <div class="kicker">Design philosophy</div>
+    <h2>Three principles that make this work</h2>
+    <div class="grid cols-3" style="margin-top:18px">
+      <div class="card">
+        <div class="big-num">01</div>
+        <h3>Plain static site</h3>
+        <p class="muted">Just HTML, CSS, JS. No framework, no build, no npm. Data lives in plain <code>.js</code> files. Anyone — and any Claude session — can edit it instantly.</p>
+      </div>
+      <div class="card">
+        <div class="big-num">02</div>
+        <h3>A living tool</h3>
+        <p class="muted">Not a one-off report. Most sessions mine fresh context from Gmail / Slack / Drive and update the data files, then push.</p>
+      </div>
+      <div class="card">
+        <div class="big-num">03</div>
+        <h3>Claude-operated</h3>
+        <p class="muted">A <code>CLAUDE.md</code> handover makes any fresh Claude session productive in minutes. Routines keep it updated unattended.</p>
+      </div>
+    </div>
+    <div class="note good">The whole point: <b>push to GitHub → Netlify auto-deploys in ~30–60s.</b> Editing the fund's brain is as cheap as a git commit.</div>
+  </section>
+
+  <!-- 4 ARCHITECTURE -->
+  <section class="slide">
+    <div class="kicker">Architecture at a glance</div>
+    <h2>The stack</h2>
+    <div class="flow">
+      <span class="node">Gmail / Slack / Drive</span><span class="arr">→</span>
+      <span class="node">Claude Code (+MCP)</span><span class="arr">→</span>
+      <span class="node">data <code>.js</code> files</span><span class="arr">→</span>
+      <span class="node">git push</span><span class="arr">→</span>
+      <span class="node">Netlify build</span><span class="arr">→</span>
+      <span class="node">live site (password)</span>
+    </div>
+    <table>
+      <tr><th>File</th><th>Role</th></tr>
+      <tr><td><code>index.html</code></td><td>Structure: sidebar nav, view sections</td></tr>
+      <tr><td><code>styles.css</code></td><td>Dark GitHub-style design system</td></tr>
+      <tr><td><code>app.js</code></td><td>All rendering + interactions (views, filters, charts)</td></tr>
+      <tr><td><code>data.js</code></td><td>Companies, investors, pairings — the core dataset</td></tr>
+      <tr><td><code>*-outreach.js / fund-performance.js</code></td><td>Live data synced from Drive sheets</td></tr>
+      <tr><td><code>netlify.toml</code> + <code>scripts/build-meta.sh</code></td><td>Deploy config + build-time metadata/history</td></tr>
+      <tr><td><code>CLAUDE.md</code></td><td>The handover brief Claude reads on every session</td></tr>
+    </table>
+  </section>
+
+  <!-- 5 PREREQS -->
+  <section class="slide">
+    <div class="kicker">Before you start</div>
+    <h2>What you'll need</h2>
+    <div class="two">
+      <div>
+        <h3>Accounts</h3>
+        <ul>
+          <li><b>GitHub</b> — a private repo for your fund</li>
+          <li><b>Netlify</b> — free tier deploys; <b>Pro</b> ($19/mo) adds visitor-password protection</li>
+          <li><b>Claude</b> — Claude Code (CLI / web / desktop) for editing + routines</li>
+        </ul>
+        <h3>Connectors (optional but recommended)</h3>
+        <ul>
+          <li>Gmail, Slack, Google Drive MCP connectors</li>
+          <li>Fireflies (meeting transcripts) if you use it</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Decisions to make up front</h3>
+        <ul>
+          <li>Your list of <b>portfolio companies</b> + a stable <code>id</code> for each</li>
+          <li>Your <b>team</b> and their initials (owner chips)</li>
+          <li>Which <b>data sources</b> are in-scope to mine (and which are strictly off-limits)</li>
+        </ul>
+        <div class="note">No coding background required. You drive Claude in plain English; the templates in this kit give it the scaffold.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 STEP 1 -->
+  <section class="slide">
+    <div class="step-num">1</div>
+    <h2>Create the GitHub repo</h2>
+    <p class="lede">Make it <b>private</b> — this repo holds confidential deal data.</p>
+    <pre><code># Use the templates/ folder from this kit as your starting point
+gh repo create your-fund/vc-hq --private
+cd vc-hq
+cp -r /path/to/starter-kit/templates/* .
+cp -r /path/to/starter-kit/templates/.claude .claude
+git add -A && git commit -m "scaffold vc-hq"
+git push -u origin main</code></pre>
+    <ul>
+      <li>The <code>templates/</code> folder ships a working skeleton: <code>index.html</code>, <code>styles.css</code>, <code>app.js</code>, <code>data.js</code>, plus deploy + guardrail config.</li>
+      <li>Keep the repo <b>private</b> forever. Treat every file as confidential.</li>
+    </ul>
+  </section>
+
+  <!-- 7 STEP 2 -->
+  <section class="slide">
+    <div class="step-num">2</div>
+    <h2>Fill in your fund's data</h2>
+    <p class="lede">Open <code>data.js</code> and replace the example records with your portfolio. This is the one file you'll touch most.</p>
+    <pre><code>const COMPANIES = [
+  {
+    id: 'acme-fusion',            // stable key — never change it
+    name: 'Acme Fusion',
+    sector: 'Fusion energy',
+    stage: 'Series A',
+    hq: 'Boston, MA',
+    status: 'Active raise — $40M Series A',
+    tagline: 'Compact tokamak; first net-energy demo 2027.',
+    milestones: ['Net-energy demo Q3 2027', 'DOE grant Jan 2026'],
+    pitchAsk: '$40M @ $180M pre'
+  },
+  // …one object per portfolio company
+];</code></pre>
+    <div class="note good">Tip: just paste your portfolio into Claude and say <i>"populate COMPANIES in data.js from this."</i> It will match the schema.</div>
+  </section>
+
+  <!-- 8 STEP 3 DATA MODEL -->
+  <section class="slide">
+    <div class="kicker">Step 3 · the core data model</div>
+    <h2>Three arrays drive everything</h2>
+    <div class="grid cols-3">
+      <div class="card"><h3>COMPANIES</h3><p class="muted">Your portfolio. Each has an <code>id</code>, sector, stage, round state, milestones.</p></div>
+      <div class="card"><h3>INVESTORS</h3><p class="muted">Your funding universe — funds + angels with research, ticket size, stage/geo tags.</p></div>
+      <div class="card"><h3>PAIRINGS</h3><p class="muted">Every investor × company match, ranked by <code>tier</code> + <code>conviction</code>, with a killer angle and intro path.</p></div>
+    </div>
+    <h3>The pairing schema (abridged)</h3>
+    <pre><code>{ rank:1, tier:1, investor:'lowercarbon', company:'acme-fusion',
+  conviction:5, contact:'Clay Dumas, Partner',
+  killerAngle:'Backed 3 fusion plays 2024–25; deep-tech lead.',
+  checkAsk:'$15–20M lead', introPath:'Warm via …',
+  ticketMatch:'yes', stageMatch:'yes',
+  verificationUrl:'https://…' }   // citable 2024–26 source</code></pre>
+    <div class="note">Discipline that pays off: <b>every pairing carries a citable <code>verificationUrl</code></b>. It keeps the universe honest and stops fabricated funds creeping in.</div>
+  </section>
+
+  <!-- 9 STEP 4 DEPLOY -->
+  <section class="slide">
+    <div class="step-num">4</div>
+    <h2>Deploy to Netlify + lock it down</h2>
+    <div class="two">
+      <div>
+        <h3>Connect &amp; deploy</h3>
+        <ul>
+          <li>In Netlify, <b>"Add new site → Import from GitHub"</b> and pick your repo.</li>
+          <li>Build command + publish dir come from <code>netlify.toml</code> (already in the template).</li>
+          <li>Every <code>git push</code> to <code>main</code> now auto-deploys.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Password-protect it</h3>
+        <ul>
+          <li>Netlify <b>Pro</b>: Site config → <b>Visitor access</b> → set a site password.</li>
+          <li>Share the password out-of-band with your team only.</li>
+          <li>The template sets <code>X-Robots-Tag: noindex</code> so it never gets crawled.</li>
+        </ul>
+      </div>
+    </div>
+    <pre><code># netlify.toml (shipped in the template)
+[build]
+  publish = "."
+  command = "bash scripts/build-meta.sh"
+[functions]
+  directory = "netlify/functions"</code></pre>
+  </section>
+
+  <!-- 10 STEP 5 CLAUDE ONBOARD -->
+  <section class="slide">
+    <div class="step-num">5</div>
+    <h2>Onboard Claude with <code>CLAUDE.md</code></h2>
+    <p class="lede">This is the single most important file. Claude reads it automatically at the start of every session — it's your fund's operating manual.</p>
+    <ul>
+      <li>Start from <code>templates/CLAUDE.md</code> and fill in the <code>&lt;PLACEHOLDERS&gt;</code>: fund name, site URL, repo, portfolio table, team matrix, guardrails.</li>
+      <li>Keep it current. When the architecture changes, update the handover in the same commit.</li>
+      <li>It contains: project overview, file map, deploy steps, per-company state, sensitivities, and your common workflows.</li>
+    </ul>
+    <div class="note good">A good <code>CLAUDE.md</code> means a brand-new Claude session is productive in &lt;5 minutes — no re-explaining your fund every time.</div>
+  </section>
+
+  <!-- 11 STEP 6 CONNECTORS -->
+  <section class="slide">
+    <div class="step-num">6</div>
+    <h2>Connect your data sources</h2>
+    <p class="lede">Wire up MCP connectors so Claude can read your real context — the difference between a static brochure and a living tool.</p>
+    <table>
+      <tr><th>Connector</th><th>What Claude does with it</th></tr>
+      <tr><td>Gmail</td><td>Mine investor / portco threads for fresh state, last-touch dates, follow-ups</td></tr>
+      <tr><td>Slack</td><td>Read deal channels; drive auto-update routines</td></tr>
+      <tr><td>Google Drive</td><td>Read live outreach trackers + the fund master sheet</td></tr>
+      <tr><td>Fireflies</td><td>Pull meeting transcripts for conversation history</td></tr>
+    </table>
+    <div class="note bad">Set boundaries explicitly in <code>CLAUDE.md</code>: an <b>allow-list</b> of what's in-scope to mine and a <b>default-deny</b> for everything else (other funds, personal mail).</div>
+  </section>
+
+  <!-- 12 STEP 7 MINING -->
+  <section class="slide">
+    <div class="step-num">7</div>
+    <h2>The mining workflow</h2>
+    <p class="lede">How a typical "update the site" session goes — and how to make it fast.</p>
+    <ol style="list-style:none;padding:0">
+      <li><b>1.</b> Search Gmail + Slack for a company: <code>from:partner@fund.vc Acme</code></li>
+      <li><b>2.</b> Synthesize new state into the per-company narrative doc</li>
+      <li><b>3.</b> Update <code>data.js</code> (round size, lead, status) + the dashboard status object in <code>app.js</code></li>
+      <li><b>4.</b> <code>git commit && git push</code> → auto-deploys</li>
+    </ol>
+    <div class="note good"><b>Parallelize:</b> for a full sweep, ask Claude to spawn one background agent per company. 9 portcos mined at once instead of in series.</div>
+  </section>
+
+  <!-- 13 STEP 8 LIVE DATA -->
+  <section class="slide">
+    <div class="step-num">8</div>
+    <h2>Live data integrations</h2>
+    <p class="lede">Connect Drive spreadsheets so the site mirrors your real working trackers — no manual re-entry.</p>
+    <div class="two">
+      <div>
+        <h3>Outreach trackers</h3>
+        <ul>
+          <li>Each company can have an investor-outreach sheet on Drive.</li>
+          <li>A small script parses it → <code>&lt;company&gt;-outreach.js</code> → searchable table on that company's page.</li>
+          <li>A diff-gated refresh commits only when the data actually changed.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Fund master sheet</h3>
+        <ul>
+          <li>Your cap-table / cash-flow sheet → <code>fund-performance.js</code>.</li>
+          <li>Drives the Fund Performance view: paid-in, NAV, MOIC, projections.</li>
+          <li>Refreshed by a weekly routine; committed so it survives deploys.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 14 STEP 9 ROUTINES -->
+  <section class="slide">
+    <div class="step-num">9</div>
+    <h2>Automate with routines</h2>
+    <p class="lede">Claude routines (claude.ai/code/routines) run on a schedule and keep the site fresh while you sleep.</p>
+    <div class="grid cols-2">
+      <div class="card"><h3>Slack scanner</h3><p class="muted">Watches a <code>#website</code> channel; treats each message as an edit instruction → commits + pushes → replies with the SHA.</p></div>
+      <div class="card"><h3>Email scout</h3><p class="muted">Sweeps the inbox (within your allow-list) and posts proposed updates to Slack for a human ✅ before applying.</p></div>
+      <div class="card"><h3>Drive sync</h3><p class="muted">Weekly pull of each outreach tracker + the fund sheet; diff-gated commit.</p></div>
+      <div class="card"><h3>Dedup &amp; verify passes</h3><p class="muted">Periodic agent sweeps to re-verify investor partners + citations.</p></div>
+    </div>
+    <div class="note">Each routine has a <b>cursor file</b> so it never re-processes old messages, and commit footers carry the source link for dedup.</div>
+  </section>
+
+  <!-- 15 STEP 10 EDIT MODE -->
+  <section class="slide">
+    <div class="step-num">10</div>
+    <h2>In-browser edit mode</h2>
+    <p class="lede">Let non-technical teammates fix data right on the live site — no git, no Claude.</p>
+    <ul>
+      <li>A Netlify Function (<code>save-edits</code>) writes an overlay file (<code>edits.js</code>) straight to the repo via the GitHub API.</li>
+      <li>Protected by a shared <code>EDIT_KEY</code> + a fine-grained GitHub token, both stored only in Netlify env vars.</li>
+      <li>The app layers <code>edits.js</code> over <code>data.js</code> at runtime, so edits show instantly.</li>
+    </ul>
+    <div class="note bad"><b>Guardrail:</b> a committed <code>pre-push</code> hook stops any code push from ever reverting <code>edits.js</code> — it's the only store of those edits. <b>Always rebase before pushing.</b></div>
+  </section>
+
+  <!-- 16 GUARDRAILS -->
+  <section class="slide">
+    <div class="kicker">Non-negotiables</div>
+    <h2>Guardrails &amp; sensitivities</h2>
+    <div class="two">
+      <div>
+        <h3>Security</h3>
+        <ul>
+          <li>Never commit <code>.netlify/</code> or any token — <code>.gitignore</code> covers it.</li>
+          <li>Secrets (GitHub PAT, edit key, service keys) live <b>only</b> in Netlify env vars.</li>
+          <li>Keep investor emails out of any externally-shareable layer.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Data integrity</h3>
+        <ul>
+          <li>Encode sensitive deal context as explicit "never externalize" rules in <code>CLAUDE.md</code>.</li>
+          <li>Every new pairing needs a citable source — no fabricated funds or LinkedIn slugs.</li>
+          <li>Flag, don't silently "fix", anything that looks factually wrong.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="note good">Write your guardrails down as a numbered list in <code>CLAUDE.md</code>. Claude follows them on every session; they compound in value.</div>
+  </section>
+
+  <!-- 17 SKILLS -->
+  <section class="slide">
+    <div class="kicker">Power-ups</div>
+    <h2>Reusable Claude Skills</h2>
+    <p class="lede">Package repeatable jobs as Skills in <code>.claude/skills/</code> so any session can invoke them by name.</p>
+    <div class="grid cols-2">
+      <div class="card"><h3>governance-tab</h3><p class="muted">Point it at an SHA / financing doc → it extracts share classes, bodies and decision rules into the Governance tab.</p></div>
+      <div class="card"><h3>pitchbook-investor-profile</h3><p class="muted">Drop a PitchBook PDF → it enriches the matching investor record with firmographics, team and portfolio.</p></div>
+    </div>
+    <p class="muted" style="margin-top:14px">The kit ships these two as working examples. Build your own for any task you repeat.</p>
+  </section>
+
+  <!-- 18 RHYTHM -->
+  <section class="slide">
+    <div class="kicker">Operating rhythm</div>
+    <h2>A week in the life</h2>
+    <table>
+      <tr><th>Cadence</th><th>What happens</th></tr>
+      <tr><td>Hourly (auto)</td><td>Slack scanner + email scout keep data fresh</td></tr>
+      <tr><td>Weekly (auto)</td><td>Drive sync of outreach trackers + fund sheet</td></tr>
+      <tr><td>Weekly (you)</td><td>Refresh the To-Do streams; review pipeline; deep-mine 1–2 hot deals</td></tr>
+      <tr><td>Quarterly (you)</td><td>Re-verify investor partners + citations; dedup the universe</td></tr>
+    </table>
+    <div class="note good">The site is never "done" — it's the place your fund's live state accrues. The automation does the boring upkeep; you do the judgement.</div>
+  </section>
+
+  <!-- 19 CHECKLIST -->
+  <section class="slide">
+    <div class="kicker">Launch checklist</div>
+    <h2>You're live when…</h2>
+    <ul>
+      <li>✅ Private GitHub repo created from the template</li>
+      <li>✅ <code>data.js</code> populated with your real portfolio + first investors</li>
+      <li>✅ Netlify site deploying on push, password set</li>
+      <li>✅ <code>CLAUDE.md</code> filled in with your fund, team + guardrails</li>
+      <li>✅ Gmail / Slack / Drive connectors wired into your Claude sessions</li>
+      <li>✅ At least one outreach tracker + the fund sheet syncing</li>
+      <li>✅ (Optional) Slack scanner routine running hourly</li>
+      <li>✅ <code>save-edits</code> function + <code>EDIT_KEY</code> configured for in-browser edits</li>
+    </ul>
+  </section>
+
+  <!-- 20 RESOURCES -->
+  <section class="slide center">
+    <div class="kicker">In this kit</div>
+    <h2>Everything you need ships here</h2>
+    <div class="grid cols-3" style="width:100%;max-width:900px;margin-top:10px">
+      <div class="card"><h3>slides/</h3><p class="muted">This deck</p></div>
+      <div class="card"><h3>docs/</h3><p class="muted">8 onboarding + handover guides, step-by-step</p></div>
+      <div class="card"><h3>templates/</h3><p class="muted">A working static-site skeleton + <code>CLAUDE.md</code>, deploy config, guardrails, skills</p></div>
+    </div>
+    <p class="lede" style="margin-top:30px">Read <code>docs/00-getting-started.md</code> next, then copy <code>templates/</code> into a fresh repo and hand it to Claude.</p>
+    <p class="muted" style="margin-top:20px">Now go build it. Push early, push often.</p>
+  </section>
+
+</div>
+
+<div id="brand"><b>VC HQ Starter Kit</b> · build-your-own playbook</div>
+<div id="ui">
+  <span id="counter">1 / 20</span>
+  <button id="prev" aria-label="Previous">‹</button>
+  <button id="next" aria-label="Next">›</button>
+</div>
+
+<script>
+  const slides=[...document.querySelectorAll('.slide')];
+  let i=0;
+  const bar=document.getElementById('bar'), counter=document.getElementById('counter');
+  function show(n){
+    i=Math.max(0,Math.min(slides.length-1,n));
+    slides.forEach((s,k)=>s.classList.toggle('active',k===i));
+    bar.style.width=((i+1)/slides.length*100)+'%';
+    counter.textContent=(i+1)+' / '+slides.length;
+    location.hash=i+1;
+  }
+  document.getElementById('next').onclick=()=>show(i+1);
+  document.getElementById('prev').onclick=()=>show(i-1);
+  document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' ')  {show(i+1);e.preventDefault();}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){show(i-1);e.preventDefault();}
+    else if(e.key==='Home'){show(0);}
+    else if(e.key==='End'){show(slides.length-1);}
+    else if(e.key==='f'||e.key==='F'){
+      if(!document.fullscreenElement)document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+  });
+  const start=parseInt(location.hash.slice(1));
+  show(Number.isFinite(start)&&start>0?start-1:0);
+</script>
+</body>
+</html>

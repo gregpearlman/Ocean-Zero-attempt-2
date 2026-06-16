@@ -1,0 +1,33 @@
+# Netlify CLI state (contains auth + project linkage — DO NOT COMMIT)
+.netlify/
+
+# Working / temp files
+_working/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editor / agent tooling
+.vscode/
+.idea/
+# Ignore personal/session Claude state, but DO track the shared project permissions
+# allow-list and the shared skills/ directory.
+.claude/*
+!.claude/settings.json
+!.claude/skills/
+*.swp
+*.swo
+*~
+
+# Python (build/parse scripts)
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Logs
+*.log
