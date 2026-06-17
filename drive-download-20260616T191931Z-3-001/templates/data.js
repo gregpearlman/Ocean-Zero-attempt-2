@@ -6,8 +6,8 @@
 // One object per portfolio company. `id` is a permanent lowercase-hyphenated key.
 const COMPANIES = [
   {
-    id: 'acme-fusion',
-    name: 'Acme Fusion',
+    id: 'flux-marine',
+    name: 'Flux Marine',
     website: 'https://example.com/',
     sector: 'Fusion energy',
     stage: 'Series A',
