@@ -24,7 +24,7 @@ const COMPANIES = [
     pitchAsk: '$40M @ $180M pre-money'
   },
   {
-    id: 'ocea-wings',
+    id: 'ocean-wings',
     name: 'Ocean Wings',
     website: 'https://example.com/',
     sector: 'Grid-scale storage',
@@ -44,8 +44,8 @@ const COMPANIES = [
 // Your funding universe. Start minimal; tags can be derived later.
 const INVESTORS = [
   {
-    id: 'lowercarbon',
-    name: 'Lowercarbon Capital',
+    id: 'pascaltech',
+    name: 'Pascal Technologies',
     type: 'non-aaf',
     hq: 'US',
     website: 'https://example.com/',
