@@ -10,8 +10,8 @@ const COMPANIES = [
     name: 'Flux Marine',
     website: 'https://example.com/',
     sector: 'Fusion energy',
-    stage: 'Series A',
-    hq: 'Boston, MA',
+    stage: 'Serues B',
+    hq: 'Bristol, RI',
     raised: '~$25M cumulative',
     lastRound: '$12M Seed (2024)',
     status: 'Active raise — $40M Series A',
@@ -28,7 +28,7 @@ const COMPANIES = [
     name: 'Ocean Wings',
     website: 'https://example.com/',
     sector: 'Grid-scale storage',
-    stage: 'Seed',
+    stage: 'Series B',
     hq: 'Berlin, DE',
     raised: '$4M',
     lastRound: '$4M pre-seed (2025)',
@@ -37,6 +37,23 @@ const COMPANIES = [
     milestones: ['First 10kWh cell shipped Q1 2026'],
     notes: '',
     pitchAsk: '$10M @ $35M pre-money'
+  },
+{
+    id: 'pascaltech',
+    name: 'Pascal Technologies',
+    type: 'non-aaf',
+    hq: 'US',
+    website: 'https://example.com/',
+    thesis: 'Climate deep-tech; will lead Series A.',
+    ticket: '$10–25M, leads',
+    stagesTag: ['seed', 'series-a', 'series-b'],
+    geosTag: ['us', 'global'],
+    ticketMin: 10, ticketMax: 25,
+    leadCapable: 'yes',
+    isGrant: false,
+    coInvestorOf: null,
+    contactStatus: 'cold',
+    verified: true
   }
 ];
 
