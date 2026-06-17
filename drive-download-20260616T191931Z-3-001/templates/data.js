@@ -24,8 +24,8 @@ const COMPANIES = [
     pitchAsk: '$40M @ $180M pre-money'
   },
   {
-    id: 'verde-grid',
-    name: 'Verde Grid',
+    id: 'ocea-wings',
+    name: 'Ocean Wings',
     website: 'https://example.com/',
     sector: 'Grid-scale storage',
     stage: 'Seed',
