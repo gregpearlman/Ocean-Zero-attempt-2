@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# pre-push — protect out-of-band live data from being reverted by a stale code push.
+#
+# Why this exists:
+#   `edits.js` (window.SITE_EDITS) is the ONLY store of edits saved through the website's
+#   in-browser Edit mode. The `save-edits` Netlify function writes the whole file straight to
+#   `main` via the GitHub Contents API — out-of-band from any Claude Code session, which works
+#   off a clone snapshotted when its container started. A code push built on a stale snapshot
+#   can silently revert newer user-saved edits. This hook makes that impossible: a push that
+#   updates `main` must carry the SAME edits.js that is currently on origin/main.
+#
+# No container code push ever legitimately changes edits.js (only the API function does), so
+# blocking any difference here is always correct. Recover with: bash scripts/sync-live-data.sh
+#
+# Fail-open on network errors (don't block when offline); fail-closed on a real data mismatch.
+set -u
+
+PROTECTED="edits.js"   # files written out-of-band; never changed by a code push
+
+guard() {           # $1 = sha being pushed to main
+  git fetch -q origin main 2>/dev/null || {
+    echo "pre-push: could not reach origin/main (offline?) — skipping live-data guard." >&2
+    return 0
+  }
+  base="$(git rev-parse --verify -q origin/main || true)"
+  [ -n "$base" ] || return 0
+  blocked=0
+  for f in $PROTECTED; do
+    if ! git diff --quiet "$base" "$1" -- "$f" 2>/dev/null; then
+      echo "✋ pre-push BLOCKED: '$f' differs from origin/main." >&2
+      blocked=1
+    fi
+  done
+  [ "$blocked" -eq 0 ] && return 0
+  {
+    echo ""
+    echo "   '$PROTECTED' is owned by the website Edit mode (save-edits writes it directly to main)."
+    echo "   A code push must never change it, or it reverts users' saved edits."
+    echo "   Fix:  bash scripts/sync-live-data.sh   then  git commit --amend --no-edit   (or rebase onto origin/main)"
+    echo "   Override (only if you are CERTAIN):  git push --no-verify"
+  } >&2
+  return 1
+}
+
+status=0
+# git feeds "<local ref> <local sha> <remote ref> <remote sha>" lines on stdin.
+while read -r _local_ref local_sha remote_ref _remote_sha; do
+  case "$remote_ref" in refs/heads/main) ;; *) continue ;; esac
+  case "$local_sha" in *[!0]*) ;; *) continue ;; esac   # all-zero sha = branch delete → skip
+  guard "$local_sha" || status=1
+done
+exit $status

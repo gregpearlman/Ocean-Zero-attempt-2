@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0d1117" />
+<meta name="robots" content="noindex, nofollow" />
+<title>VC HQ</title>
+<link rel="stylesheet" href="styles.css" />
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+
+<!-- Mobile top bar -->
+<header id="mobile-topbar">
+  <button id="hamburger" aria-label="Open menu"><span></span><span></span><span></span></button>
+  <div class="mobile-title">VC HQ</div>
+</header>
+<div id="sidebar-backdrop"></div>
+
+<aside id="sidebar">
+  <div class="brand">
+    <div class="brand-title">VC HQ</div>
+    <div class="brand-subtitle">Portfolio Headquarters</div>
+    <div class="brand-meta">Confidential</div>
+  </div>
+  <nav>
+    <a href="#dashboard" class="nav-link active" data-view="dashboard">Dashboard</a>
+    <a href="#companies" class="nav-link" data-view="companies">Companies</a>
+    <a href="#investors" class="nav-link" data-view="investors">Investors</a>
+    <a href="#pairings" class="nav-link" data-view="pairings">Pairings</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="legend-title">Tier legend</div>
+    <div class="legend-row"><span class="tier-badge tier-1">Tier 1</span> Pursue now</div>
+    <div class="legend-row"><span class="tier-badge tier-2">Tier 2</span> Timing</div>
+    <div class="legend-row"><span class="tier-badge tier-3">Tier 3</span> Future</div>
+  </div>
+</aside>
+
+<main id="main">
+
+  <section id="view-dashboard" class="view active">
+    <div class="section-header"><h2>Portfolio</h2><div class="section-meta" id="dash-summary"></div></div>
+    <div class="round-grid" id="round-status-grid"></div>
+    <div id="version-banner"></div>
+  </section>
+
+  <section id="view-companies" class="view">
+    <header class="view-header"><h1>Companies</h1></header>
+    <div class="card-grid" id="companies-grid"></div>
+  </section>
+
+  <section id="view-investors" class="view">
+    <header class="view-header"><h1>Investors</h1></header>
+    <div class="controls">
+      <input type="text" id="investors-search" class="control-input" placeholder="Search investors…" />
+    </div>
+    <div class="card-grid" id="investors-grid"></div>
+  </section>
+
+  <section id="view-pairings" class="view">
+    <header class="view-header"><h1>Pairings</h1></header>
+    <div class="controls">
+      <input type="text" id="pairings-search" class="control-input" placeholder="Search pairings…" />
+      <select id="pairings-tier-filter" class="control-input">
+        <option value="all">All tiers</option>
+        <option value="1">Tier 1</option>
+        <option value="2">Tier 2</option>
+        <option value="3">Tier 3</option>
+        <option value="avoid">Conflicts</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table" id="pairings-table">
+        <thead><tr>
+          <th>#</th><th>Tier</th><th>Investor</th><th>Company</th>
+          <th>Conv.</th><th>Killer angle</th><th>Check ask</th><th>Contact</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<!-- Generated at build time (optional) -->
+<script>window.SITE_VERSION = window.SITE_VERSION || {};</script>
+<!-- Data files load BEFORE app.js. Add new data files here, in this block. -->
+<script src="edits.js"></script>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
